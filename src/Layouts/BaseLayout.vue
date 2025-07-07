@@ -53,5 +53,22 @@
 </template>
 
 <script setup>
-// ページ基底用: 特にロジック不要
+import { useI18n } from 'vue-i18n';
+import { onMounted, watch } from 'vue';
+
+const { t } = useI18n();
+
+// ページタイトルを設定
+function updateTitle() {
+  document.title = t('appTitle');
+}
+
+onMounted(() => {
+  updateTitle();
+});
+
+// 言語が変更された時にタイトルも更新
+watch(() => t('appTitle'), () => {
+  updateTitle();
+});
 </script>

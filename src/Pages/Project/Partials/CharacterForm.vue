@@ -1,18 +1,20 @@
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="mb-2">
+    <div class="mb-4">
+      <label class="block mb-1 font-medium">{{ $t('characterName') }}</label>
       <input
         v-model="form.name"
         type="text"
-        class="border rounded px-2 py-1 mr-2"
+        class="w-full border rounded px-3 py-2 mb-3"
         :placeholder="$t('characterName')"
       />
-      <input
+      <label class="block mb-1 font-medium">{{ $t('role') }}</label>
+      <textarea
         v-model="form.role"
-        type="text"
-        class="border rounded px-2 py-1 mr-2"
+        class="w-full border rounded px-3 py-2 mb-3"
+        rows="3"
         :placeholder="$t('role')"
-      />
+      ></textarea>
       <CoolButton type="submit" color="primary" class="mr-2">{{
         editIndex === null ? $t("add") : $t("save")
       }}</CoolButton>

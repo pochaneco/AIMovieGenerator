@@ -1,16 +1,50 @@
 <template>
   <BaseLayout>
-    <div class="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-8">
+    <div class="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-8">
       <h2 class="text-2xl font-bold mb-4">
         {{ $t("edit") }} {{ $t("projectSettings") }}
       </h2>
-      <ProjectForm
-        :form="projectForm"
-        :editIndex="0"
-        @submit="onSubmit"
-        @cancel="onCancel"
-      />
-      <div class="mt-10 border-t pt-6">
+
+      <!-- タブナビゲーション -->
+      <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-8">
+          <button
+            @click="activeTab = 'project'"
+            :class="[
+              'py-2 px-1 border-b-2 font-medium text-sm',
+              activeTab === 'project'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+            ]"
+          >
+            {{ $t("projectSettings") }}
+          </button>
+          <button
+            @click="activeTab = 'characters'"
+            :class="[
+              'py-2 px-1 border-b-2 font-medium text-sm',
+              activeTab === 'characters'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+            ]"
+          >
+            {{ $t("characterList") }}
+          </button>
+        </nav>
+      </div>
+
+      <!-- プロジェクト設定タブ -->
+      <div v-show="activeTab === 'project'">
+        <ProjectForm
+          :form="projectForm"
+          :editIndex="0"
+          @submit="onSubmit"
+          @cancel="onCancel"
+        />
+      </div>
+
+      <!-- キャラクター一覧タブ -->
+      <div v-show="activeTab === 'characters'">
         <CoolButton color="primary" class="mb-4" @click="openCharModal = true">
           <span class="hidden sm:inline">{{ $t("add") }}</span>
           <svg
@@ -50,41 +84,50 @@ import CharacterForm from "./Partials/CharacterForm.vue";
 import CharacterList from "./Partials/CharacterList.vue";
 import CharacterModal from "./Partials/CharacterModal.vue";
 import CoolButton from "@/components/CoolButton.vue";
+import {
+  getProjects,
+  getProject,
+  updateProject,
+} from "@/services/dataService.js";
 
 const router = useRouter();
 const route = useRoute();
-const LS_KEY = "aimovie_projects";
 const projectForm = reactive({ name: "", description: "" });
 const characterForm = reactive({ name: "", role: "" });
 const charEditIndex = ref(null);
 const openCharModal = ref(false);
+const activeTab = ref("project"); // デフォルトはプロジェクト設定タブ
 const projectId = route.query.id;
 const project = ref(null);
 
-onMounted(() => {
-  const data = localStorage.getItem(LS_KEY);
-  const projects = data ? JSON.parse(data) : [];
-  const found = projects.find((p) => String(p.id) === String(projectId));
-  if (found) {
-    project.value = found;
-    projectForm.name = found.name;
-    projectForm.description = found.description;
-  } else {
+onMounted(async () => {
+  try {
+    const found = await getProject(projectId);
+    if (found) {
+      project.value = found;
+      projectForm.name = found.name;
+      projectForm.description = found.description;
+    } else {
+      router.replace({ name: "ProjectIndex" });
+    }
+  } catch (error) {
+    console.error("プロジェクトの読み込みに失敗しました:", error);
     router.replace({ name: "ProjectIndex" });
   }
 });
 
-function onSubmit() {
-  const data = localStorage.getItem(LS_KEY);
-  const projects = data ? JSON.parse(data) : [];
-  const idx = projects.findIndex((p) => String(p.id) === String(projectId));
-  if (idx !== -1) {
-    projects[idx].name = projectForm.name;
-    projects[idx].description = projectForm.description;
-    projects[idx].characters = project.value.characters || [];
-    localStorage.setItem(LS_KEY, JSON.stringify(projects));
+async function onSubmit() {
+  try {
+    await updateProject(projectId, {
+      name: projectForm.name,
+      description: projectForm.description,
+      characters: project.value.characters || [],
+    });
+    router.push({ name: "ProjectIndex" });
+  } catch (error) {
+    console.error("プロジェクトの更新に失敗しました:", error);
+    alert("プロジェクトの更新に失敗しました");
   }
-  router.push({ name: "ProjectIndex" });
 }
 function onCancel() {
   router.push({ name: "ProjectIndex" });
@@ -126,22 +169,18 @@ function deleteCharacter(cidx) {
     updateProjectCharacters();
   }
 }
-function updateProjectCharacters() {
-  const data = localStorage.getItem(LS_KEY);
-  const projects = data ? JSON.parse(data) : [];
-  const idx = projects.findIndex((p) => String(p.id) === String(projectId));
-  if (idx !== -1) {
-    projects[idx].characters = project.value.characters || [];
-    localStorage.setItem(LS_KEY, JSON.stringify(projects));
+async function updateProjectCharacters() {
+  try {
+    await updateProject(projectId, {
+      characters: project.value.characters || [],
+    });
+  } catch (error) {
+    console.error("キャラクターの更新に失敗しました:", error);
   }
 }
 function cancelCharEdit() {
   charEditIndex.value = null;
   characterForm.name = "";
   characterForm.role = "";
-}
-function getAllProjects() {
-  const data = localStorage.getItem(LS_KEY);
-  return data ? JSON.parse(data) : [];
 }
 </script>

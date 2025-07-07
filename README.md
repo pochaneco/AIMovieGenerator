@@ -55,15 +55,12 @@ AIを活用した動画生成を支援するWebアプリケーションです。
 src/
 ├── components/          # 共通コンポーネント
 │   ├── CoolButton.vue   # 再利用可能なボタンコンポーネント
-│   ├── MarkdownPage.vue # Markdownページ表示コンポーネント
-│   └── SettingsPage.vue # 設定ページコンポーネント
+│   └── MarkdownPage.vue # Markdownページ表示コンポーネント
 ├── Layouts/
 │   └── BaseLayout.vue   # ベースレイアウト（サイドメニュー含む）
 ├── Pages/
-│   ├── Generate/
-│   │   └── GeneratePage.vue # 動画生成ページ
 │   ├── Home/
-│   │   └── Home.vue     # ホームページ
+│   │   └── Index.vue    # ホームページ
 │   ├── Project/
 │   │   ├── Index.vue    # プロジェクト一覧ページ
 │   │   ├── Edit.vue     # プロジェクト編集ページ
@@ -74,8 +71,17 @@ src/
 │   │       ├── CharacterForm.vue    # キャラクターフォーム
 │   │       ├── CharacterList.vue    # キャラクター一覧
 │   │       └── CharacterModal.vue   # キャラクター編集モーダル
+│   ├── Script/
+│   │   ├── Index.vue    # 台本一覧・生成ページ
+│   │   ├── Show.vue     # 台本詳細ページ
+│   │   └── Partials/    # 台本関連の部分コンポーネント
+│   │       ├── ScriptGenerateForm.vue # 台本生成フォーム
+│   │       ├── ScriptList.vue         # 台本一覧
+│   │       └── ScriptDetail.vue       # 台本詳細表示
 │   └── Settings/
-│       └── SettingsPage.vue # 設定ページ
+│       ├── Index.vue    # 設定ページ
+│       └── Partials/
+│           └── SettingsForm.vue # 設定フォーム
 ├── locales/             # 多言語対応ファイル
 │   ├── ja.js           # 日本語翻訳
 │   └── en.js           # 英語翻訳

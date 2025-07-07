@@ -2,10 +2,10 @@
   <button
     :type="type"
     :class="[
-      'transition duration-150 ease-in-out font-semibold px-4 py-2 rounded shadow',
-      color === 'primary' ? 'bg-blue-500 text-white hover:bg-blue-600' : '',
+      'transition duration-150 ease-in-out font-semibold px-4 py-2 rounded shadow cursor-pointer',
+      color === 'primary' ? 'bg-sky-500 text-white hover:bg-sky-600' : '',
       color === 'secondary' ? 'bg-gray-400 text-white hover:bg-gray-500' : '',
-      color === 'danger' ? 'bg-red-500 text-white hover:bg-red-600' : '',
+      color === 'danger' ? 'bg-rose-500 text-white hover:bg-rose-600' : '',
       color === 'success' ? 'bg-green-500 text-white hover:bg-green-600' : '',
       customClass,
     ]"

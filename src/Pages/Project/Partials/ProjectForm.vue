@@ -14,7 +14,7 @@
       <textarea
         v-model="form.description"
         class="w-full border rounded px-3 py-2"
-        rows="2"
+        rows="25"
         :placeholder="$t('projectDescription')"
       ></textarea>
     </div>

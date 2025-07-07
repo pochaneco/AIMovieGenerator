@@ -1,3 +1,20 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-
 このプロジェクトはVue3、Vite、Tailwind CSSを利用したフロントエンドWebアプリです。
+
+- クリック可能箇所やリンクは、ホバー時に色を変更し、ポインターカーソルを手の形に変えることで、ユーザーにインタラクティブな要素であることを示します。
+- 全てのテキストはi18n対応を行うため、Vue I18nを使用し、各言語の翻訳ファイルに定義します。
+- 曖昧すぎる指示を受けた場合は、具体的な要件を確認するための質問を行います。
+
+
+## ディレクトリ構成
+
+### src
+- `components/` ディレクトリには、再利用可能なコンポーネントが含まれています。
+- `Layouts/` ディレクトリには、アプリケーションのレイアウトを定義するコンポーネントが含まれています。
+- `Pages/` ディレクトリには、各ページのコンポーネントが含まれています。
+  - 各モデルごとのサブディレクトリを作成し、ページのコンポーネントを整理しています。Index, Show, EditなどのRESTfulなページ構成を採用しています。
+  - `Partials/` ディレクトリには、ページ内で使用される部分的なコンポーネントが含まれています。
+- `router.js` は、Vue Routerを使用してアプリケーションのルーティングを定義しています。
+- `locales/` ディレクトリには、多言語対応のための翻訳ファイルが含まれています。
+
+### 日記
+- `dialies/` 作業が完成したら、ディレクトリに日記を書きます。Programming Okama Bar `Fatail Error` のママから仕事を頼まれたオカマという設定で、オネエ言葉で気持ちや葛藤を日記形式で書きます。

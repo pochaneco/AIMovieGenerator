@@ -20,7 +20,7 @@
       <ProjectList
         :projects="projects"
         @edit="editProject"
-        @delete="deleteProject"
+        @delete="deleteProjectItem"
       />
       <ProjectModal
         :show="openModal"
@@ -34,72 +34,95 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
 import ProjectForm from "./Partials/ProjectForm.vue";
 import ProjectList from "./Partials/ProjectList.vue";
 import CoolButton from "@/components/CoolButton.vue";
 import ProjectModal from "./Partials/ProjectModal.vue";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+} from "@/services/dataService.js";
 
-const LS_KEY = "aimovie_projects";
 const projects = ref([]);
 const projectForm = reactive({ name: "", description: "" });
 const editIndex = ref(null);
 const openModal = ref(false);
 const router = useRouter();
 
-function loadProjects() {
-  const data = localStorage.getItem(LS_KEY);
-  projects.value = data ? JSON.parse(data) : [];
+onMounted(() => {
+  loadProjects();
+});
+
+async function loadProjects() {
+  try {
+    projects.value = await getProjects();
+  } catch (error) {
+    console.error("プロジェクトの読み込みに失敗しました:", error);
+  }
 }
-function saveProjects() {
-  localStorage.setItem(LS_KEY, JSON.stringify(projects.value));
-}
+
 function resetForm() {
   projectForm.name = "";
   projectForm.description = "";
   editIndex.value = null;
 }
-function saveProject() {
+
+async function saveProject() {
   if (!projectForm.name) return;
-  if (editIndex.value === null) {
-    projects.value.push({
-      id: Date.now(),
-      name: projectForm.name,
-      description: projectForm.description,
-      characters: [],
-    });
-  } else {
-    Object.assign(projects.value[editIndex.value], {
-      name: projectForm.name,
-      description: projectForm.description,
-    });
+
+  try {
+    if (editIndex.value === null) {
+      // 新規作成
+      await createProject({
+        name: projectForm.name,
+        description: projectForm.description,
+        characters: [],
+      });
+    } else {
+      // 更新（Note: Index画面では編集はしないが、将来の拡張のため）
+      const project = projects.value[editIndex.value];
+      await updateProject(project.id, {
+        name: projectForm.name,
+        description: projectForm.description,
+      });
+    }
+    await loadProjects();
+    resetForm();
+  } catch (error) {
+    console.error("プロジェクトの保存に失敗しました:", error);
+    alert("プロジェクトの保存に失敗しました");
   }
-  saveProjects();
-  resetForm();
 }
 function editProject(idx) {
   const id = projects.value[idx].id;
   router.push({ name: "ProjectEdit", query: { id } });
 }
-function deleteProject(idx) {
+
+async function deleteProjectItem(idx) {
   if (confirm("本当に削除しますか？")) {
-    projects.value.splice(idx, 1);
-    saveProjects();
-    if (selectedIdx.value === idx) selectedIdx.value = null;
+    try {
+      const project = projects.value[idx];
+      await deleteProject(project.id);
+      await loadProjects();
+    } catch (error) {
+      console.error("プロジェクトの削除に失敗しました:", error);
+      alert("プロジェクトの削除に失敗しました");
+    }
   }
 }
+
 function closeModal() {
   openModal.value = false;
   resetForm();
 }
-function onModalSubmit() {
-  saveProject();
+
+async function onModalSubmit() {
+  await saveProject();
   openModal.value = false;
 }
-
-watch(projects, saveProjects, { deep: true });
-
-loadProjects();
 </script>

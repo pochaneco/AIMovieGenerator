@@ -1,14 +1,24 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
-  { path: "/", component: () => import("@/Pages/Home/Home.vue") },
+  { path: "/", component: () => import("@/Pages/Home/Index.vue") },
   {
     path: "/settings",
-    component: () => import("@/Pages/Settings/SettingsPage.vue"),
+    component: () => import("@/Pages/Settings/Index.vue"),
   },
   {
     path: "/generate",
-    component: () => import("@/Pages/Generate/GeneratePage.vue"),
+    component: () => import("@/Pages/Script/Index.vue"),
+  },
+  {
+    path: "/script/:id",
+    name: "ScriptShow",
+    component: () => import("@/Pages/Script/Show.vue"),
+  },
+  {
+    path: "/script/:id/edit",
+    name: "ScriptEdit",
+    component: () => import("@/Pages/Script/Edit.vue"),
   },
   {
     path: "/project",
