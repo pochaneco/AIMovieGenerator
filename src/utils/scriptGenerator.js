@@ -2,52 +2,7 @@
  * 台本生成ユーティリティ
  */
 
-import { getApiKey } from "./apiKeyManager.js";
-
-// 将来のAI生成機能で使用予定
-// const API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-
-/**
- * サンプル台本を生成
- * @param {Object} script - 台本データ
- * @param {Object} project - プロジェクトデータ
- * @returns {string} 生成された台本内容
- */
-export function generateSampleScript(script, project) {
-  const projectName = project?.name || "未設定";
-  const characters = project?.characters || [];
-
-  let sampleScript = `# ${script.title}\n\n`;
-  sampleScript += `## プロジェクト: ${projectName}\n\n`;
-
-  if (characters.length > 0) {
-    sampleScript += `## 登場キャラクター\n`;
-    characters.forEach((char) => {
-      sampleScript += `- ${char.name}: ${char.description}\n`;
-    });
-    sampleScript += "\n";
-  }
-
-  sampleScript += `## シナリオ\n\n`;
-  sampleScript += `${script.description}\n\n`;
-  sampleScript += `## シーン1\n\n`;
-
-  if (characters.length >= 2) {
-    sampleScript += `${characters[0].name}: こんにちは、${characters[1].name}さん。\n\n`;
-    sampleScript += `${characters[1].name}: はい、こんにちは。今日はいい天気ですね。\n\n`;
-    sampleScript += `${characters[0].name}: そうですね。お散歩日和です。\n\n`;
-  } else {
-    sampleScript += `ナレーター: 物語が始まります。\n\n`;
-    sampleScript += `主人公: これは新しい冒険の始まりだ。\n\n`;
-  }
-
-  sampleScript += `## シーン2\n\n`;
-  sampleScript += `（場面転換）\n\n`;
-  sampleScript += `ナレーター: そして物語は続いていく...\n\n`;
-  sampleScript += `## 終わり\n`;
-
-  return sampleScript;
-}
+import { generateScript } from "./llmService.js";
 
 /**
  * 台本を構造化された配列形式で生成
@@ -78,7 +33,7 @@ export function generateStructuredScript(script, project) {
       title: "登場キャラクター",
       characters: characters.map((char) => ({
         name: char.name,
-        description: char.description,
+        description: char.role,
       })),
     });
   }
@@ -199,7 +154,6 @@ export async function generateAIScript(script, project, onProgress = null) {
   // 台本生成結果
   return {
     success: true,
-    content: generateSampleScript(script, project),
     structuredContent: generateStructuredScript(script, project),
     generatedAt: new Date().toISOString(),
   };

@@ -1,21 +1,21 @@
 <template>
   <form @submit.prevent="onSubmit">
     <div class="mb-4">
-      <label class="block mb-1 font-medium">{{ $t('characterName') }}</label>
+      <label class="block mb-1 font-medium">{{ $t("characterName") }}</label>
       <input
         v-model="form.name"
         type="text"
         class="w-full border rounded px-3 py-2 mb-3"
         :placeholder="$t('characterName')"
       />
-      <label class="block mb-1 font-medium">{{ $t('role') }}</label>
+      <label class="block mb-1 font-medium">{{ $t("role") }}</label>
       <textarea
         v-model="form.role"
         class="w-full border rounded px-3 py-2 mb-3"
         rows="3"
         :placeholder="$t('role')"
       ></textarea>
-      <CoolButton type="submit" color="primary" class="mr-2">{{
+      <CoolButton type="submit" variant="primary" class="mr-2">{{
         editIndex === null ? $t("add") : $t("save")
       }}</CoolButton>
       <CoolButton

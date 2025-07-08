@@ -17,26 +17,14 @@
             @click="goEdit(project.id)"
             :aria-label="$t('edit')"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-            >
-              <path :d="mdiPencil" fill="currentColor" />
-            </svg>
+            <Icon name="pencil" />
           </CoolButton>
           <CoolButton
             color="danger"
             @click="$emit('delete', idx)"
             :aria-label="$t('delete')"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-            >
-              <path :d="mdiTrashCan" fill="currentColor" />
-            </svg>
+            <Icon name="trash" />
           </CoolButton>
         </div>
       </li>
@@ -46,7 +34,7 @@
 
 <script setup>
 import CoolButton from "@/components/CoolButton.vue";
-import { mdiPencil, mdiTrashCan } from "@mdi/js";
+import Icon from "@/components/Icon.vue";
 import { useRouter } from "vue-router";
 const props = defineProps({
   projects: Array,

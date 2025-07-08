@@ -9,16 +9,19 @@
         :placeholder="$t('projectNameExample')"
       />
     </div>
-    <div class="mb-4">
-      <label class="block mb-1 font-medium">{{ $t("description") }}</label>
+    <div class="mb-4 space-y-2">
+      <label class="block font-medium">{{ $t("description") }}</label>
+      <div class="text-sm text-gray-600">
+        {{ $t("projectPromptNote") }}
+      </div>
       <textarea
         v-model="form.description"
         class="w-full border rounded px-3 py-2"
-        rows="25"
+        rows="15"
         :placeholder="$t('projectDescription')"
       ></textarea>
     </div>
-    <CoolButton type="submit" color="primary" class="mr-2">{{
+    <CoolButton type="submit" variant="primary" class="mr-2">{{
       editIndex === null ? $t("add") : $t("save")
     }}</CoolButton>
     <CoolButton

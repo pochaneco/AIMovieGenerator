@@ -1,6 +1,6 @@
 <template>
   <BaseLayout>
-    <div class="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-8">
+    <PageContainer>
       <h2 class="text-2xl font-bold mb-4">
         {{ $t("edit") }} {{ $t("projectSettings") }}
       </h2>
@@ -45,18 +45,13 @@
 
       <!-- キャラクター一覧タブ -->
       <div v-show="activeTab === 'characters'">
-        <CoolButton color="primary" class="mb-4" @click="openCharModal = true">
+        <CoolButton
+          variant="primary"
+          class="mb-4"
+          @click="openCharModal = true"
+        >
           <span class="hidden sm:inline">{{ $t("add") }}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 sm:ml-2 inline"
-            viewBox="0 0 24 24"
-          >
-            <path
-              fill="currentColor"
-              d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"
-            />
-          </svg>
+          <Icon name="plus" class="sm:ml-2 inline" />
         </CoolButton>
         <CharacterList
           :characters="project?.characters"
@@ -71,7 +66,7 @@
           @submit="onCharModalSubmit"
         />
       </div>
-    </div>
+    </PageContainer>
   </BaseLayout>
 </template>
 
@@ -79,11 +74,13 @@
 import { ref, reactive, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
+import PageContainer from "@/components/PageContainer.vue";
 import ProjectForm from "./Partials/ProjectForm.vue";
 import CharacterForm from "./Partials/CharacterForm.vue";
 import CharacterList from "./Partials/CharacterList.vue";
 import CharacterModal from "./Partials/CharacterModal.vue";
 import CoolButton from "@/components/CoolButton.vue";
+import Icon from "@/components/Icon.vue";
 import {
   getProjects,
   getProject,

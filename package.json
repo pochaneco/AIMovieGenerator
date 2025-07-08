@@ -10,19 +10,25 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
+    "@langchain/anthropic": "^0.3.24",
+    "@langchain/community": "^0.3.48",
+    "@langchain/google-genai": "^0.2.14",
+    "@langchain/openai": "^0.5.18",
     "@mdi/font": "^7.4.47",
     "@mdi/js": "^7.4.47",
     "@tailwindcss/vite": "^4.1.8",
-    "marked": "^15.0.12",
+    "dexie": "^4.0.11",
+    "langchain": "^0.3.29",
+    "marked": "^16.0.0",
     "vue": "^3.5.13",
-    "vue-i18n": "^9.14.4",
+    "vue-i18n": "^11.1.9",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-vue": "^6.0.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.4",
     "tailwindcss": "^4.1.8",
-    "vite": "^6.3.5"
+    "vite": "^7.0.2"
   }
 }

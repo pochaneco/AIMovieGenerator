@@ -1,27 +1,31 @@
 <template>
   <BaseLayout>
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-8">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-bold">{{ $t("projectSettings") }}</h2>
-        <CoolButton color="primary" @click="openModal = true">
-          <span class="hidden sm:inline">{{ $t("add") }}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 sm:ml-2 inline"
-            viewBox="0 0 24 24"
-          >
-            <path
-              fill="currentColor"
-              d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z"
-            />
-          </svg>
-        </CoolButton>
+    <PageContainer max-width="3xl">
+      <!-- プロジェクトが存在する場合の通常表示 -->
+      <div v-if="projects.length > 0">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold">{{ $t("projectSettings") }}</h2>
+          <CoolButton variant="primary" @click="openModal = true">
+            <span class="hidden sm:inline">{{ $t("add") }}</span>
+            <Icon name="plus" class="sm:ml-2 inline" />
+          </CoolButton>
+        </div>
+        <ProjectList
+          :projects="projects"
+          @edit="editProject"
+          @delete="deleteProjectItem"
+        />
       </div>
-      <ProjectList
-        :projects="projects"
-        @edit="editProject"
-        @delete="deleteProjectItem"
+
+      <!-- プロジェクトが存在しない場合の表示 -->
+      <NoProjectsMessage
+        v-else
+        :title="$t('noProjectsManagementTitle')"
+        :message="$t('noProjectsManagementMessage')"
+        :button-text="$t('createFirstProject')"
+        @create-project="openModal = true"
       />
+
       <ProjectModal
         :show="openModal"
         :form="projectForm"
@@ -29,7 +33,7 @@
         @close="closeModal"
         @submit="onModalSubmit"
       />
-    </div>
+    </PageContainer>
   </BaseLayout>
 </template>
 
@@ -37,10 +41,13 @@
 import { ref, reactive, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
+import PageContainer from "@/components/PageContainer.vue";
 import ProjectForm from "./Partials/ProjectForm.vue";
 import ProjectList from "./Partials/ProjectList.vue";
 import CoolButton from "@/components/CoolButton.vue";
+import Icon from "@/components/Icon.vue";
 import ProjectModal from "./Partials/ProjectModal.vue";
+import NoProjectsMessage from "@/components/NoProjectsMessage.vue";
 import {
   getProjects,
   createProject,

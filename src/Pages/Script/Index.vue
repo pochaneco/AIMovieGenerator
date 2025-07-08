@@ -1,70 +1,64 @@
 <template>
   <BaseLayout>
-    <div class="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-8">
+    <PageContainer>
       <h2 class="text-2xl font-bold mb-4">{{ $t("generateMovie") }}</h2>
 
-      <!-- タブナビゲーション -->
-      <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex space-x-8">
-          <button
-            @click="activeTab = 'create'"
-            :class="[
-              'py-2 px-1 border-b-2 font-medium text-sm',
-              activeTab === 'create'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-            ]"
-          >
-            {{ $t("newCreate") }}
-          </button>
-          <button
-            @click="activeTab = 'list'"
-            :class="[
-              'py-2 px-1 border-b-2 font-medium text-sm',
-              activeTab === 'list'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-            ]"
-          >
-            {{ $t("createdList") }}
-          </button>
-        </nav>
-      </div>
-
-      <!-- 新規作成タブ -->
-      <div v-show="activeTab === 'create'">
-        <ScriptGenerateForm
-          :form="form"
-          :loading="loading"
-          :error="error"
-          :projects="projects"
-          @submit="onSave"
-          @update:title="form.title = $event"
-          @update:description="form.description = $event"
-          @update:projectId="form.projectId = $event"
+      <!-- プロジェクトがない場合のメッセージ -->
+      <div v-if="projects.length === 0">
+        <NoProjectsMessage
+          :sub-message="$t('projectRequiredForScript')"
+          @create-project="goToProjectCreate"
         />
       </div>
 
-      <!-- 台本リストタブ -->
-      <div v-show="activeTab === 'list'">
-        <ScriptList
-          :videos="generatedScripts"
-          @delete="deleteScriptItem"
-          @preview="previewScript"
-          @detail="goToDetail"
-          @createNew="activeTab = 'create'"
-        />
-      </div>
-    </div>
+      <!-- プロジェクトがある場合のタブコンポーネント -->
+      <Tabs
+        v-else
+        v-model="activeTab"
+        :tabs="tabItems"
+        @tab-change="onTabChange"
+      >
+        <template #default="{ activeTab }">
+          <!-- 新規作成タブ -->
+          <div v-if="activeTab === 'create'">
+            <ScriptGenerateForm
+              :form="form"
+              :loading="loading"
+              :error="error"
+              :projects="projects"
+              @submit="onSave"
+              @update:title="form.title = $event"
+              @update:description="form.description = $event"
+              @update:projectId="form.projectId = $event"
+            />
+          </div>
+
+          <!-- 台本リストタブ -->
+          <div v-else-if="activeTab === 'list'">
+            <ScriptList
+              :videos="generatedScripts"
+              @delete="deleteScriptItem"
+              @preview="previewScript"
+              @detail="goToDetail"
+              @createNew="switchToCreateTab"
+            />
+          </div>
+        </template>
+      </Tabs>
+    </PageContainer>
   </BaseLayout>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
+import PageContainer from "@/components/PageContainer.vue";
+import Tabs from "@/components/Tabs.vue";
 import ScriptGenerateForm from "./Partials/ScriptGenerateForm.vue";
 import ScriptList from "./Partials/ScriptList.vue";
+import NoProjectsMessage from "@/components/NoProjectsMessage.vue";
 import {
   getScripts,
   createScript,
@@ -74,6 +68,13 @@ import {
 
 const router = useRouter();
 const route = useRoute();
+const { t } = useI18n();
+
+// タブ設定
+const tabItems = computed(() => [
+  { id: "create", label: t("newCreate") },
+  { id: "list", label: t("createdList") },
+]);
 
 const form = reactive({
   title: "",
@@ -104,6 +105,16 @@ watch(activeTab, (newTab) => {
     router.replace({ query: {} });
   }
 });
+
+// タブ変更ハンドラー
+function onTabChange(tabId) {
+  // watchで自動的にクエリパラメータが更新される
+}
+
+// 新規作成タブに切り替え
+function switchToCreateTab() {
+  activeTab.value = "create";
+}
 
 async function loadGeneratedScripts() {
   try {
@@ -184,5 +195,9 @@ function previewScript(index) {
 
 function goToDetail(index) {
   router.push(`/script/${index}`);
+}
+
+function goToProjectCreate() {
+  router.push("/project");
 }
 </script>

@@ -2,7 +2,7 @@
   <div class="flex h-screen">
     <!-- サイドメニュー -->
     <aside
-      class="w-56 bg-gray-800 h-screen overflow-y-auto text-white flex flex-col px-4"
+      class="w-56 bg-sky-700 h-screen overflow-y-auto text-white flex flex-col px-4"
     >
       <div class="h-screen flex flex-col justify-between py-4">
         <div class="flex-1">
@@ -10,26 +10,26 @@
           <nav class="flex flex-col gap-2 flex-1">
             <router-link
               to="/"
-              class="py-2 px-3 rounded hover:bg-gray-700"
-              active-class="bg-gray-700 font-bold"
+              class="py-2 px-3 rounded hover:bg-sky-900"
+              active-class="bg-sky-900 font-bold"
               >{{ $t("home") }}</router-link
             >
             <router-link
               to="/generate"
-              class="py-2 px-3 rounded hover:bg-gray-700"
-              active-class="bg-gray-700 font-bold"
+              class="py-2 px-3 rounded hover:bg-sky-900"
+              active-class="bg-sky-900 font-bold"
               >{{ $t("generateMovie") }}</router-link
             >
             <router-link
               to="/project"
-              class="py-2 px-3 rounded hover:bg-gray-700"
-              active-class="bg-gray-700 font-bold"
+              class="py-2 px-3 rounded hover:bg-sky-900"
+              active-class="bg-sky-900 font-bold"
               >{{ $t("projectSettings") }}</router-link
             >
             <router-link
               to="/settings"
-              class="py-2 px-3 rounded hover:bg-gray-700"
-              active-class="bg-gray-700 font-bold"
+              class="py-2 px-3 rounded hover:bg-sky-900"
+              active-class="bg-sky-900 font-bold"
               >{{ $t("settings") }}</router-link
             >
           </nav>
@@ -37,7 +37,7 @@
         <div class="pt-4">
           <select
             v-model="$i18n.locale"
-            class="bg-gray-700 text-white rounded px-2 py-1"
+            class="bg-sky-900 text-white rounded px-2 py-1"
           >
             <option value="ja">日本語</option>
             <option value="en">English</option>
@@ -46,21 +46,25 @@
       </div>
     </aside>
     <!-- メイン -->
-    <main class="flex-1 bg-gray-50 h-screen overflow-y-auto p-6">
+    <main class="flex-1 bg-blue-50 h-screen overflow-y-auto p-6">
       <slot />
     </main>
+
+    <!-- AIチャット（サイドバー） -->
+    <AIChat />
   </div>
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
-import { onMounted, watch } from 'vue';
+import { useI18n } from "vue-i18n";
+import { onMounted, watch } from "vue";
+import AIChat from "@/components/AIChat.vue";
 
 const { t } = useI18n();
 
 // ページタイトルを設定
 function updateTitle() {
-  document.title = t('appTitle');
+  document.title = t("appTitle");
 }
 
 onMounted(() => {
@@ -68,7 +72,10 @@ onMounted(() => {
 });
 
 // 言語が変更された時にタイトルも更新
-watch(() => t('appTitle'), () => {
-  updateTitle();
-});
+watch(
+  () => t("appTitle"),
+  () => {
+    updateTitle();
+  }
+);
 </script>

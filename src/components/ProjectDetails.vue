@@ -13,20 +13,11 @@
           {{ project.name || "プロジェクト名不明" }}
         </p>
       </div>
-      <svg
+      <Icon
+        name="chevron-down"
         :class="{ 'rotate-180': showDetails }"
-        class="w-5 h-5 text-gray-500 transition-transform"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M19 9l-7 7-7-7"
-        />
-      </svg>
+        class="text-gray-500 transition-transform"
+      />
     </button>
 
     <!-- 詳細内容（開閉可能） -->
@@ -90,6 +81,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import Icon from "@/components/Icon.vue";
 
 const props = defineProps({
   project: {
