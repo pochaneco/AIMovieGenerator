@@ -4,23 +4,7 @@
       <!-- ヘッダー -->
       <div class="mb-6">
         <!-- パンくずナビゲーション -->
-        <nav class="text-sm breadcrumbs mb-4">
-          <router-link
-            to="/generate"
-            class="text-blue-500 hover:text-blue-600 cursor-pointer"
-          >
-            {{ $t("scriptGeneration") }}
-          </router-link>
-          <span class="mx-2">/</span>
-          <router-link
-            :to="`/script/${route.params.id}`"
-            class="text-blue-500 hover:text-blue-600 cursor-pointer"
-          >
-            {{ script.title || "台本詳細" }}
-          </router-link>
-          <span class="mx-2">/</span>
-          <span class="text-gray-600">{{ $t("edit") }}</span>
-        </nav>
+        <Breadcrumb :items="breadcrumbItems" />
 
         <!-- タイトルと情報アイコン -->
         <div class="flex items-center gap-3 mb-4">
@@ -43,81 +27,20 @@
       </div>
 
       <!-- LLM設定とモデル選択 -->
-      <div v-if="!isGenerating" class="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h4 class="font-medium mb-3 text-gray-700">
-          {{ $t("generationSettings") }}
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- LLM設定選択 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-2">{{
-              $t("llmConfig")
-            }}</label>
-            <select
-              v-model="selectedLLMConfigId"
-              class="w-full border rounded px-3 py-2 text-sm"
-              :disabled="availableLLMConfigs.length === 0"
-            >
-              <option value="" disabled>{{ $t("selectLLMConfig") }}</option>
-              <option
-                v-for="config in availableLLMConfigs"
-                :key="config.id"
-                :value="config.id"
-              >
-                {{ config.name }} ({{ PROVIDER_INFO[config.provider]?.name }})
-              </option>
-            </select>
-          </div>
-
-          <!-- モデル選択 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-2">{{
-              $t("model")
-            }}</label>
-            <select
-              v-model="selectedModel"
-              class="w-full border rounded px-3 py-2 text-sm"
-              :disabled="!selectedConfig"
-            >
-              <option
-                v-for="model in availableModels"
-                :key="model"
-                :value="model"
-              >
-                {{ model }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 現在の設定表示 -->
-        <div v-if="selectedConfig" class="mt-3 p-2 bg-blue-50 rounded text-sm">
-          <div class="flex items-center text-blue-700">
-            <span class="text-lg mr-2">{{
-              PROVIDER_INFO[selectedConfig.provider]?.icon
-            }}</span>
-            <span>{{ selectedConfig.name }} - {{ selectedModel }}</span>
-          </div>
-        </div>
-
-        <!-- 設定がない場合の警告 -->
-        <div
-          v-if="availableLLMConfigs.length === 0"
-          class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700"
-        >
-          ⚠️ {{ $t("noLLMConfigsWarning") }}
-          <router-link to="/settings" class="text-yellow-800 underline ml-1">{{
-            $t("goToSettings")
-          }}</router-link>
-        </div>
-      </div>
+      <LLMConfigSelector
+        v-if="!isGenerating"
+        v-model:selected-config-id="selectedLLMConfigId"
+        v-model:selected-model="selectedModel"
+        :available-configs="availableLLMConfigs"
+        :available-models="availableModels"
+      />
 
       <!-- 生成・停止ボタン -->
       <div class="flex gap-4 justify-center py-6">
         <CoolButton
           v-if="!isGenerating"
           @click="generateScript"
-          color="primary"
+          variant="primary"
           class="flex items-center gap-2 px-6 py-3"
           :disabled="!selectedConfig"
         >
@@ -128,7 +51,7 @@
         <CoolButton
           v-if="isGenerating"
           @click="stopGeneration"
-          color="danger"
+          variant="danger"
           class="flex items-center gap-2 px-6 py-3"
         >
           <Icon name="stop" />
@@ -140,7 +63,7 @@
       <div class="flex gap-4 justify-center py-4 border-t">
         <CoolButton
           @click="saveScript"
-          color="success"
+          variant="success"
           class="flex items-center gap-2 px-6 py-2"
         >
           <Icon name="check" size="sm" />
@@ -149,7 +72,7 @@
 
         <CoolButton
           @click="cancelEdit"
-          color="secondary"
+          variant="secondary"
           class="flex items-center gap-2 px-6 py-2"
         >
           <Icon name="close" size="sm" />
@@ -159,35 +82,12 @@
     </div>
 
     <!-- 情報モーダル -->
-    <Modal
-      v-model:show="showInfoModal"
-      :title="$t('scriptDetails')"
-      size="2xl"
+    <ScriptInfoModal
+      :show="showInfoModal"
+      :script="script"
+      :project="project"
       @close="showInfoModal = false"
-    >
-      <!-- プロジェクト情報 -->
-      <div v-if="project" class="mb-4">
-        <h3 class="font-semibold text-gray-700 mb-2">
-          {{ $t("projectDetails") }}
-        </h3>
-        <div class="bg-gray-50 p-3 rounded">
-          <p class="font-medium">{{ project.name }}</p>
-          <p class="text-sm text-gray-600 mt-1">{{ project.description }}</p>
-        </div>
-      </div>
-
-      <!-- 台本説明 -->
-      <div class="mb-4">
-        <h3 class="font-semibold text-gray-700 mb-2">
-          {{ $t("scriptDescription") }}
-        </h3>
-        <div class="bg-gray-50 p-3 rounded">
-          <p class="text-sm text-gray-600">
-            {{ script.description || "説明なし" }}
-          </p>
-        </div>
-      </div>
-    </Modal>
+    />
   </BaseLayout>
 </template>
 
@@ -198,7 +98,9 @@ import { useI18n } from "vue-i18n";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
 import CoolButton from "@/components/CoolButton.vue";
 import Icon from "@/components/Icon.vue";
-import Modal from "@/components/Modal.vue";
+import Breadcrumb from "@/components/Breadcrumb.vue";
+import LLMConfigSelector from "@/components/LLMConfigSelector.vue";
+import ScriptInfoModal from "@/components/ScriptInfoModal.vue";
 import ScriptContentDisplay from "./Partials/ScriptContentDisplay.vue";
 import {
   generateAIScript,
@@ -211,7 +113,7 @@ import {
   getActiveLLMConfig,
   getLLMConfigs,
 } from "@/services/dataService.js";
-import { getAvailableModels, PROVIDER_INFO } from "@/utils/llmService.js";
+import { getAvailableModels } from "@/utils/llmService.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -232,6 +134,15 @@ const availableModels = computed(() => {
   if (!selectedConfig.value) return [];
   return getAvailableModels(selectedConfig.value.provider);
 });
+
+const breadcrumbItems = computed(() => [
+  { label: t("scriptGeneration"), to: "/generate" },
+  {
+    label: script.value.title || "台本詳細",
+    to: `/script/${route.params.id}`,
+  },
+  { label: t("edit"), current: true },
+]);
 
 // 選択された設定が変わった時にモデルをデフォルトに設定
 watch(selectedLLMConfigId, (newConfigId) => {

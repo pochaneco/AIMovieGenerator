@@ -13,14 +13,14 @@
         </div>
         <div class="flex gap-2">
           <CoolButton
-            color="primary"
+            variant="primary"
             @click="goEdit(project.id)"
             :aria-label="$t('edit')"
           >
             <Icon name="pencil" />
           </CoolButton>
           <CoolButton
-            color="danger"
+            variant="danger"
             @click="$emit('delete', idx)"
             :aria-label="$t('delete')"
           >

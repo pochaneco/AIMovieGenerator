@@ -27,7 +27,7 @@
     <CoolButton
       v-if="editIndex !== null"
       type="button"
-      color="secondary"
+      variant="secondary"
       @click="$emit('cancel')"
       >{{ $t("cancel") }}</CoolButton
     >

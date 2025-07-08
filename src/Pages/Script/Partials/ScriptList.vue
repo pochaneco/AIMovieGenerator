@@ -20,7 +20,7 @@
           <div class="flex gap-2">
             <CoolButton
               @click="$emit('detail', index)"
-              color="secondary"
+              variant="secondary"
               :aria-label="$t('detail')"
               customClass="text-sm px-3 py-1"
               class="flex items-center gap-1"
@@ -31,7 +31,7 @@
 
             <CoolButton
               @click="$emit('delete', index)"
-              color="danger"
+              variant="danger"
               :aria-label="$t('delete')"
               customClass="text-sm px-3 py-1"
               class="flex items-center gap-1"

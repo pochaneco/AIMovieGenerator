@@ -26,9 +26,24 @@ const routes = [
     component: () => import("@/Pages/Project/Index.vue"),
   },
   {
+    path: "/project/new",
+    name: "ProjectNew",
+    component: () => import("@/Pages/Project/New.vue"),
+  },
+  {
     path: "/project/edit",
     name: "ProjectEdit",
     component: () => import("@/Pages/Project/Edit.vue"),
+  },
+  {
+    path: "/project/:id/character/new",
+    name: "CharacterNew",
+    component: () => import("@/Pages/Project/CharacterNew.vue"),
+  },
+  {
+    path: "/project/:id/character/:characterIndex/edit",
+    name: "CharacterEdit",
+    component: () => import("@/Pages/Project/CharacterEdit.vue"),
   },
 ];
 

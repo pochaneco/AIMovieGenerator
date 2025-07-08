@@ -45,11 +45,7 @@
 
       <!-- キャラクター一覧タブ -->
       <div v-show="activeTab === 'characters'">
-        <CoolButton
-          variant="primary"
-          class="mb-4"
-          @click="openCharModal = true"
-        >
+        <CoolButton variant="primary" class="mb-4" @click="createCharacter">
           <span class="hidden sm:inline">{{ $t("add") }}</span>
           <Icon name="plus" class="sm:ml-2 inline" />
         </CoolButton>
@@ -57,13 +53,6 @@
           :characters="project?.characters"
           @edit="editCharacter"
           @delete="deleteCharacter"
-        />
-        <CharacterModal
-          :show="openCharModal"
-          :form="characterForm"
-          :editIndex="charEditIndex"
-          @close="closeCharModal"
-          @submit="onCharModalSubmit"
         />
       </div>
     </PageContainer>
@@ -76,23 +65,14 @@ import { useRouter, useRoute } from "vue-router";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
 import PageContainer from "@/components/PageContainer.vue";
 import ProjectForm from "./Partials/ProjectForm.vue";
-import CharacterForm from "./Partials/CharacterForm.vue";
 import CharacterList from "./Partials/CharacterList.vue";
-import CharacterModal from "./Partials/CharacterModal.vue";
 import CoolButton from "@/components/CoolButton.vue";
 import Icon from "@/components/Icon.vue";
-import {
-  getProjects,
-  getProject,
-  updateProject,
-} from "@/services/dataService.js";
+import { getProject, updateProject } from "@/services/dataService.js";
 
 const router = useRouter();
 const route = useRoute();
 const projectForm = reactive({ name: "", description: "" });
-const characterForm = reactive({ name: "", role: "" });
-const charEditIndex = ref(null);
-const openCharModal = ref(false);
 const activeTab = ref("project"); // デフォルトはプロジェクト設定タブ
 const projectId = route.query.id;
 const project = ref(null);
@@ -129,36 +109,16 @@ async function onSubmit() {
 function onCancel() {
   router.push({ name: "ProjectIndex" });
 }
-function onCharModalSubmit() {
-  saveCharacter();
-  openCharModal.value = false;
+
+function createCharacter() {
+  router.push({ name: "CharacterNew", params: { id: projectId } });
 }
-function closeCharModal() {
-  openCharModal.value = false;
-  cancelCharEdit();
-}
-function saveCharacter() {
-  if (!characterForm.name) return;
-  if (!project.value.characters) project.value.characters = [];
-  if (charEditIndex.value === null) {
-    project.value.characters.push({
-      name: characterForm.name,
-      role: characterForm.role,
-    });
-  } else {
-    Object.assign(project.value.characters[charEditIndex.value], {
-      name: characterForm.name,
-      role: characterForm.role,
-    });
-  }
-  // projects配列に反映して保存
-  updateProjectCharacters();
-  cancelCharEdit();
-}
+
 function editCharacter(cidx) {
-  charEditIndex.value = cidx;
-  Object.assign(characterForm, project.value.characters[cidx]);
-  openCharModal.value = true;
+  router.push({
+    name: "CharacterEdit",
+    params: { id: projectId, characterIndex: cidx },
+  });
 }
 function deleteCharacter(cidx) {
   if (confirm("本当に削除しますか？")) {
@@ -166,18 +126,19 @@ function deleteCharacter(cidx) {
     updateProjectCharacters();
   }
 }
+
 async function updateProjectCharacters() {
   try {
     await updateProject(projectId, {
       characters: project.value.characters || [],
     });
+    // プロジェクト情報を再読み込みして最新状態に同期
+    const updated = await getProject(projectId);
+    if (updated) {
+      project.value = updated;
+    }
   } catch (error) {
     console.error("キャラクターの更新に失敗しました:", error);
   }
-}
-function cancelCharEdit() {
-  charEditIndex.value = null;
-  characterForm.name = "";
-  characterForm.role = "";
 }
 </script>

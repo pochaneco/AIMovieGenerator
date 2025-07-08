@@ -56,14 +56,14 @@
           <template #empty-actions>
             <CoolButton
               @click="$emit('generate')"
-              color="primary"
+              variant="primary"
               :disabled="generating"
             >
               {{ $t("generateScript") }}
             </CoolButton>
             <CoolButton
               @click="$emit('edit')"
-              color="secondary"
+              variant="secondary"
               :disabled="generating"
             >
               {{ $t("editBasicInfo") }}
@@ -76,7 +76,7 @@
           <CoolButton
             v-if="!script.content || script.status === 'draft'"
             @click="$emit('generate')"
-            color="primary"
+            variant="primary"
             :disabled="generating"
           >
             {{ generating ? $t("generating") : $t("generateScript") }}
@@ -85,7 +85,7 @@
           <CoolButton
             v-if="script.content && script.status === 'completed'"
             @click="$emit('regenerate')"
-            color="success"
+            variant="success"
             :disabled="generating"
           >
             {{ generating ? $t("generating") : $t("regenerateScript") }}
@@ -94,7 +94,7 @@
           <!-- 編集ボタン（常に表示、未生成でも基本情報を編集可能） -->
           <CoolButton
             @click="$emit('edit')"
-            color="secondary"
+            variant="secondary"
             :disabled="generating"
           >
             {{ script.content ? $t("edit") : $t("editBasicInfo") }}
