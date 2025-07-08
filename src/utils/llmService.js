@@ -185,14 +185,59 @@ export async function generateText(prompt, options = {}) {
 }
 
 /**
+ * シーン作成関数 - LLMツールとして使用
+ */
+function createScene(title, description, duration = "2分") {
+  return {
+    id: Date.now() + Math.random(),
+    type: "scene",
+    title,
+    content: description,
+    duration,
+    lines: [],
+  };
+}
+
+/**
+ * シーンにライン追加関数 - LLMツールとして使用
+ */
+function addLineToScene(
+  scene,
+  character,
+  content,
+  emotion = "普通",
+  type = "line"
+) {
+  const line = {
+    id: Date.now() + Math.random(),
+    type,
+    character,
+    content,
+    emotion,
+  };
+
+  if (!scene.lines) {
+    scene.lines = [];
+  }
+  scene.lines.push(line);
+  return line;
+}
+
+/**
  * 台本生成用の専用関数（設定IDとモデルを指定可能）
  */
-export async function generateScript(
-  title,
-  description,
-  characters = [],
-  options = {}
-) {
+export async function generateScript(projectData, scriptData, options = {}) {
+  const { configId = null, modelName = null, scriptSettings = {} } = options;
+
+  // 台本設定のデフォルト値
+  const settings = {
+    totalDuration: scriptSettings.totalDuration || "10分",
+    sceneCount: scriptSettings.sceneCount || 3,
+    averageSceneDuration: scriptSettings.averageSceneDuration || "3分",
+    ...scriptSettings,
+  };
+
+  const characters = projectData?.characters || [];
   const charactersInfo =
     characters.length > 0
       ? `登場キャラクター: ${characters
@@ -200,23 +245,63 @@ export async function generateScript(
           .join(", ")}`
       : "";
 
+  // 構造化された出力プロンプト
   const prompt = `
 以下の情報をもとに、映画の台本を作成してください：
 
-タイトル: ${title}
-説明: ${description}
+プロジェクト名: ${projectData?.name || "未設定"}
+プロジェクト説明: ${projectData?.description || ""}
+台本タイトル: ${scriptData?.title || "未設定"}
+台本説明: ${scriptData?.description || ""}
 ${charactersInfo}
 
-要求事項:
-- 自然で魅力的なストーリー展開
-- キャラクターの個性を活かした台詞
-- 適切なシーン構成
-- 視覚的な描写も含める
+台本設定:
+- 全体の長さ: ${settings.totalDuration}
+- シーン数: ${settings.sceneCount}個
+- 1シーンあたりの平均時間: ${settings.averageSceneDuration}
 
-台本形式で出力してください。
+以下のマークダウン形式で台本を出力してください：
+
+## シーン1: [シーンタイトル] ([時間])
+*[シーンの説明・状況設定]
+
+キャラクター名: セリフ内容 [感情]
+キャラクター名: セリフ内容 [感情]
+【ナレーション: ナレーション内容】
+
+## シーン2: [シーンタイトル] ([時間])
+*[シーンの説明・状況設定]
+
+...
+
+要求:
+1. 各シーンには明確なタイトルと時間を設定
+2. シーンの説明は「*」で始める
+3. セリフは「キャラクター名: 内容 [感情]」の形式
+4. ナレーションは「【ナレーション: 内容】」の形式
+5. キャラクターの個性を活かした自然な対話
+6. ストーリーの起承転結を意識した構成
+7. 各シーンの時間配分は設定に従う
+
+台本を作成してください。
 `;
 
-  return await generateText(prompt, options);
+  try {
+    console.log("台本生成プロンプト送信:", {
+      projectName: projectData?.name,
+      scriptTitle: scriptData?.title,
+      settings,
+    });
+
+    const llm = await createLLMInstance(configId, modelName);
+    const response = await llm.invoke(prompt);
+
+    console.log("台本生成完了");
+    return response.content;
+  } catch (error) {
+    console.error("台本生成エラー:", error);
+    throw new Error(`台本生成に失敗しました: ${error.message}`);
+  }
 }
 
 /**

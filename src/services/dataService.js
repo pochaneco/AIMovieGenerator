@@ -107,8 +107,10 @@ export async function updateScript(index, scriptData) {
         updatedAt: new Date().toISOString(),
       };
 
-      await db.scripts.update(scriptToUpdate.id, updatedScript);
-      return updatedScript;
+      // IndexedDB保存用にシリアライズ可能な形にする
+      const safeScriptData = JSON.parse(JSON.stringify(updatedScript));
+      await db.scripts.update(scriptToUpdate.id, safeScriptData);
+      return safeScriptData;
     } else {
       throw new Error("指定された台本が見つかりません");
     }
@@ -134,8 +136,10 @@ export async function createScript(scriptData) {
       ...scriptData,
     };
 
-    const id = await db.scripts.add(newScript);
-    const createdScript = { ...newScript, id };
+    // IndexedDB保存用にシリアライズ可能な形にする
+    const safeScriptData = JSON.parse(JSON.stringify(newScript));
+    const id = await db.scripts.add(safeScriptData);
+    const createdScript = { ...safeScriptData, id };
 
     // インデックスを計算（新しいものが先頭になる）
     const allScripts = await db.scripts
@@ -250,8 +254,10 @@ export async function createProject(projectData) {
       ...projectData,
     };
 
-    const id = await db.projects.add(newProject);
-    return { ...newProject, id };
+    // IndexedDB保存用にシリアライズ可能な形にする
+    const safeProjectData = JSON.parse(JSON.stringify(newProject));
+    const id = await db.projects.add(safeProjectData);
+    return { ...safeProjectData, id };
   } catch (error) {
     console.error("プロジェクトデータの作成に失敗しました:", error);
     throw new Error("プロジェクトデータの作成に失敗しました");
@@ -281,8 +287,10 @@ export async function updateProject(projectId, projectData) {
       updatedAt: new Date().toISOString(),
     };
 
-    await db.projects.update(id, updatedProject);
-    return updatedProject;
+    // IndexedDB保存用にシリアライズ可能な形にする
+    const safeProjectData = JSON.parse(JSON.stringify(updatedProject));
+    await db.projects.update(id, safeProjectData);
+    return safeProjectData;
   } catch (error) {
     console.error("プロジェクトデータの更新に失敗しました:", error);
     throw new Error("プロジェクトデータの更新に失敗しました");
@@ -388,11 +396,15 @@ export async function saveSetting(key, value) {
   await ensureInitialized();
 
   try {
-    await db.settings.put({
+    const settingData = {
       key,
       value,
       updatedAt: new Date().toISOString(),
-    });
+    };
+
+    // IndexedDB保存用にシリアライズ可能な形にする
+    const safeSettingData = JSON.parse(JSON.stringify(settingData));
+    await db.settings.put(safeSettingData);
   } catch (error) {
     console.error("設定値の保存に失敗しました:", error);
     throw new Error("設定値の保存に失敗しました");
@@ -500,14 +512,17 @@ export async function saveLLMConfig(config) {
     // 既存の設定があるかチェック
     const existingConfig = await db.llmConfigs.get(newConfig.id);
 
+    // IndexedDB保存用にシリアライズ可能な形にする
+    const safeConfigData = JSON.parse(JSON.stringify(newConfig));
+
     if (existingConfig) {
-      await db.llmConfigs.update(newConfig.id, newConfig);
+      await db.llmConfigs.update(newConfig.id, safeConfigData);
     } else {
-      await db.llmConfigs.add(newConfig);
+      await db.llmConfigs.add(safeConfigData);
     }
 
     // 復号化された状態で返す
-    const decryptedConfig = { ...newConfig };
+    const decryptedConfig = { ...safeConfigData };
     if (decryptedConfig.apiKey && isEncrypted(decryptedConfig.apiKey)) {
       decryptedConfig.apiKey = await decrypt(decryptedConfig.apiKey);
     }

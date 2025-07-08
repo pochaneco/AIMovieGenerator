@@ -40,11 +40,17 @@ async function onSubmit() {
   if (!projectForm.name) return;
 
   try {
-    await createProject({
+    // データをクリーンアップしてからcreateProjectに送信
+    const cleanProjectData = {
       name: projectForm.name,
       description: projectForm.description,
       characters: [],
-    });
+    };
+
+    // シリアライズ可能かテスト
+    const serializedData = JSON.parse(JSON.stringify(cleanProjectData));
+
+    await createProject(serializedData);
     router.push({ name: "ProjectIndex" });
   } catch (error) {
     console.error("プロジェクトの作成に失敗しました:", error);

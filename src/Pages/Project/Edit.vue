@@ -95,11 +95,17 @@ onMounted(async () => {
 
 async function onSubmit() {
   try {
-    await updateProject(projectId, {
+    // データをクリーンアップしてからupdateProjectに送信
+    const cleanProjectData = {
       name: projectForm.name,
       description: projectForm.description,
       characters: project.value.characters || [],
-    });
+    };
+
+    // シリアライズ可能かテスト
+    const serializedData = JSON.parse(JSON.stringify(cleanProjectData));
+
+    await updateProject(projectId, serializedData);
     router.push({ name: "ProjectIndex" });
   } catch (error) {
     console.error("プロジェクトの更新に失敗しました:", error);

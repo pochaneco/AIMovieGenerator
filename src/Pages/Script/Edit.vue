@@ -23,8 +23,22 @@
 
       <!-- 台本内容表示 -->
       <div class="mb-6">
-        <ScriptContentDisplay :script-content="scriptContent" />
+        <ScriptContentDisplay
+          :script-content="scriptContent"
+          :available-characters="availableCharacters"
+          @add-scene="addScene"
+          @add-line-to-scene="addLineToScene"
+          @delete-scene="deleteScene"
+          @delete-line="deleteLine"
+          @move-scene="moveScene"
+          @move-line="moveLine"
+          @update-scene="updateScene"
+          @update-line="updateLine"
+        />
       </div>
+
+      <!-- 台本設定 -->
+      <ScriptSettingsForm v-if="!isGenerating" v-model="scriptSettings" />
 
       <!-- LLM設定とモデル選択 -->
       <LLMConfigSelector
@@ -92,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import BaseLayout from "@/Layouts/BaseLayout.vue";
@@ -102,6 +116,7 @@ import Breadcrumb from "@/components/Breadcrumb.vue";
 import LLMConfigSelector from "@/components/LLMConfigSelector.vue";
 import ScriptInfoModal from "@/components/ScriptInfoModal.vue";
 import ScriptContentDisplay from "./Partials/ScriptContentDisplay.vue";
+import ScriptSettingsForm from "./Partials/ScriptSettingsForm.vue";
 import {
   generateAIScript,
   generateStructuredScript,
@@ -135,6 +150,10 @@ const availableModels = computed(() => {
   return getAvailableModels(selectedConfig.value.provider);
 });
 
+const availableCharacters = computed(() => {
+  return project.value?.characters || [];
+});
+
 const breadcrumbItems = computed(() => [
   { label: t("scriptGeneration"), to: "/generate" },
   {
@@ -162,12 +181,244 @@ const script = ref({
   updatedAt: null,
 });
 
+// 台本設定
+const scriptSettings = ref({
+  totalDuration: "10分",
+  sceneCount: 3,
+  averageSceneDuration: "3分",
+});
+
 const project = ref(null);
 const isGenerating = ref(false);
 const showInfoModal = ref(false);
 
-// 台本内容の配列
 const scriptContent = ref([]);
+
+// 古い構造を新しいネスト構造に変換
+function convertToNestedStructure(oldContent) {
+  const newContent = [];
+  let currentScene = null;
+
+  for (const item of oldContent) {
+    if (item.type === "scene") {
+      // 前のシーンがある場合は追加
+      if (currentScene) {
+        newContent.push(currentScene);
+      }
+      // 新しいシーンを開始
+      currentScene = {
+        ...item,
+        lines: [],
+      };
+    } else if (
+      item.type === "line" ||
+      item.type === "narration" ||
+      item.type === "action"
+    ) {
+      // セリフ等はシーンに追加
+      if (currentScene) {
+        currentScene.lines.push(item);
+      } else {
+        // シーンがない場合は、デフォルトシーンを作成
+        currentScene = {
+          id: Date.now() + Math.random(),
+          type: "scene",
+          title: "シーン1",
+          content: "自動生成されたシーン",
+          duration: "3分",
+          lines: [item],
+        };
+      }
+    } else {
+      // その他のアイテム（ヘッダー、キャラクター紹介など）
+      // 前のシーンがある場合は追加
+      if (currentScene) {
+        newContent.push(currentScene);
+        currentScene = null;
+      }
+      newContent.push(item);
+    }
+  }
+
+  // 最後のシーンを追加
+  if (currentScene) {
+    newContent.push(currentScene);
+  }
+
+  return newContent;
+}
+
+// シーン編集（現在はインライン編集に統合済み）
+function openEditScene(idx) {
+  // このメソッドは今後削除予定
+  console.warn("openEditScene is deprecated. Use inline editing instead.");
+}
+function moveScene(oldIdx, newIdx) {
+  if (
+    oldIdx < 0 ||
+    newIdx < 0 ||
+    oldIdx >= scriptContent.value.length ||
+    newIdx >= scriptContent.value.length
+  ) {
+    return;
+  }
+
+  const scenes = [...scriptContent.value];
+  const [movedScene] = scenes.splice(oldIdx, 1);
+  scenes.splice(newIdx, 0, movedScene);
+  scriptContent.value = scenes;
+}
+
+// シーン削除
+function deleteScene(idx) {
+  if (idx < 0 || idx >= scriptContent.value.length) return;
+
+  const scene = scriptContent.value[idx];
+  if (!scene) return;
+
+  // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+  const isScene = scene.title || scene.type === "scene";
+
+  if (!isScene) {
+    return;
+  }
+
+  if (confirm("このシーンを削除しますか？（保存するまで元に戻せます）")) {
+    scriptContent.value.splice(idx, 1);
+  }
+}
+
+// シーン追加
+function addScene(position) {
+  const newScene = {
+    id: Date.now() + Math.random(),
+    type: "scene",
+    title: "新しいシーン",
+    content: "シーンの説明を入力してください",
+    duration: "3分",
+    lines: [],
+  };
+
+  scriptContent.value.splice(position, 0, newScene);
+
+  // 追加されたシーンを即座に編集モードに
+  nextTick(() => {
+    const event = new CustomEvent("start-edit", {
+      detail: { index: `scene-${position}`, item: newScene },
+    });
+    document.dispatchEvent(event);
+  });
+}
+
+// シーン更新
+function updateScene(sceneIndex, updatedScene) {
+  if (sceneIndex >= 0 && sceneIndex < scriptContent.value.length) {
+    const scene = scriptContent.value[sceneIndex];
+    // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+    const isScene = scene.title || scene.type === "scene";
+    if (isScene) {
+      scriptContent.value[sceneIndex] = {
+        ...scene,
+        ...updatedScene,
+      };
+    }
+  }
+}
+
+// シーンにセリフを追加
+function addLineToScene(sceneIndex) {
+  const scene = scriptContent.value[sceneIndex];
+  if (!scene) return;
+
+  // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+  const isScene = scene.title || scene.type === "scene";
+  if (!isScene) return;
+
+  const characters = project.value?.characters || [];
+  const defaultCharacter =
+    characters.length > 0 ? characters[0].name : "キャラクター";
+
+  const newLine = {
+    id: Date.now() + Math.random(),
+    type: "line",
+    character: defaultCharacter,
+    content: "新しいセリフを入力してください",
+    emotion: "普通",
+  };
+
+  if (!scene.lines) {
+    scene.lines = [];
+  }
+
+  scene.lines.push(newLine);
+
+  // 追加されたセリフを即座に編集モードに
+  nextTick(() => {
+    const lineIndex = scene.lines.length - 1;
+    const event = new CustomEvent("start-edit", {
+      detail: { index: `line-${sceneIndex}-${lineIndex}`, item: newLine },
+    });
+    document.dispatchEvent(event);
+  });
+}
+
+// セリフ削除
+function deleteLine(sceneIndex, lineIndex) {
+  const scene = scriptContent.value[sceneIndex];
+  if (!scene || !scene.lines) return;
+
+  // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+  const isScene = scene.title || scene.type === "scene";
+  if (!isScene) return;
+
+  if (confirm("このセリフを削除しますか？（保存するまで元に戻せます）")) {
+    scene.lines.splice(lineIndex, 1);
+  }
+}
+
+// セリフ移動
+function moveLine(sceneIndex, oldLineIndex, newLineIndex) {
+  const scene = scriptContent.value[sceneIndex];
+  if (!scene || !scene.lines) return;
+
+  // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+  const isScene = scene.title || scene.type === "scene";
+  if (!isScene) return;
+
+  if (
+    oldLineIndex < 0 ||
+    newLineIndex < 0 ||
+    oldLineIndex >= scene.lines.length ||
+    newLineIndex >= scene.lines.length
+  ) {
+    return;
+  }
+
+  const lines = [...scene.lines];
+  const [movedLine] = lines.splice(oldLineIndex, 1);
+  lines.splice(newLineIndex, 0, movedLine);
+  scene.lines = lines;
+}
+
+// セリフ更新
+function updateLine(sceneIndex, lineIndex, updatedLine) {
+  const scene = scriptContent.value[sceneIndex];
+  if (!scene || !scene.lines) return;
+
+  // シーンかどうかを確認（title プロパティがあるか、もしくは type が 'scene' かで判定）
+  const isScene = scene.title || scene.type === "scene";
+  if (!isScene) return;
+
+  if (lineIndex >= 0 && lineIndex < scene.lines.length) {
+    scene.lines[lineIndex] = {
+      ...scene.lines[lineIndex],
+      ...updatedLine,
+    };
+  }
+}
+
+// 保留中の挿入位置を追跡
+const pendingInsertPosition = ref(null);
 
 // キーボードショートカット
 function handleKeydown(event) {
@@ -214,10 +465,28 @@ async function loadScript() {
 
     if (scriptData) {
       script.value = scriptData;
+
+      // 台本設定を読み込み
+      if (scriptData.scriptSettings) {
+        scriptSettings.value = { ...scriptData.scriptSettings };
+      }
+
       await loadProject();
       // 既存の台本内容から構造化されたコンテンツを生成
       if (scriptData.structuredContent) {
-        scriptContent.value = scriptData.structuredContent;
+        // 既存データが新しいネスト構造かどうかチェック
+        const hasNestedStructure = scriptData.structuredContent.some(
+          (item) => item.type === "scene" && Array.isArray(item.lines)
+        );
+
+        if (hasNestedStructure) {
+          scriptContent.value = scriptData.structuredContent;
+        } else {
+          // 古い構造を新しい構造に変換
+          scriptContent.value = convertToNestedStructure(
+            scriptData.structuredContent
+          );
+        }
       } else if (scriptData.content) {
         // 既存のテキスト台本から構造化コンテンツを生成
         scriptContent.value = generateStructuredScript(
@@ -269,12 +538,16 @@ async function generateScript() {
       return;
     }
 
-    // AI台本生成を実行（選択した設定とモデルを使用）
+    // 台本設定をscriptデータに保存
+    script.value.scriptSettings = { ...scriptSettings.value };
+
+    // AI台本生成を実行（選択した設定とモデル、台本設定を使用）
     let generatedContent;
     try {
       const result = await generateAIScript(script.value, project.value, {
         configId: selectedLLMConfigId.value,
         modelName: selectedModel.value,
+        scriptSettings: scriptSettings.value,
       });
       generatedContent = result.structuredContent;
       console.log(
@@ -295,13 +568,18 @@ async function generateScript() {
     }
 
     // 生成された内容をscriptContentに反映
+    // IndexedDB保存用にシリアライズ可能な形にする
     scriptContent.value = generatedContent;
-    script.value.structuredContent = generatedContent;
+    script.value.structuredContent = JSON.parse(
+      JSON.stringify(generatedContent)
+    );
     script.value.status = "completed";
 
     // データを保存
     const scriptIndex = parseInt(route.params.id);
-    await updateScript(scriptIndex, script.value);
+    // IndexedDB保存用にディープコピー
+    const safeScript = JSON.parse(JSON.stringify(script.value));
+    await updateScript(scriptIndex, safeScript);
 
     console.log("台本生成完了");
   } catch (error) {
@@ -319,12 +597,18 @@ function stopGeneration() {
 
 async function saveScript() {
   try {
-    // 構造化された台本コンテンツを台本データに保存
-    script.value.structuredContent = scriptContent.value;
+    // 構造化された台本コンテンツと設定を台本データに保存
+    // IndexedDB保存用にシリアライズ可能な形にする
+    script.value.structuredContent = JSON.parse(
+      JSON.stringify(scriptContent.value)
+    );
+    script.value.scriptSettings = { ...scriptSettings.value };
     script.value.updatedAt = new Date().toISOString();
 
     const scriptIndex = parseInt(route.params.id);
-    await updateScript(scriptIndex, script.value);
+    // IndexedDB保存用にディープコピー
+    const safeScript = JSON.parse(JSON.stringify(script.value));
+    await updateScript(scriptIndex, safeScript);
 
     alert("台本が保存されました");
     // 詳細画面に戻る

@@ -161,7 +161,10 @@ async function regenerateScript() {
 
 function editScript() {
   // 基本情報編集の場合はモーダルを表示
-  if (!script.value.content || script.value.status === "draft") {
+  if (
+    (!script.value.content && !script.value.structuredContent) ||
+    script.value.status === "draft"
+  ) {
     showEditBasicInfo();
   } else {
     // 台本が既にある場合は Edit.vue に遷移

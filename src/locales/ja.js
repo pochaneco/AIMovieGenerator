@@ -145,4 +145,16 @@ export default {
     "プロジェクトを作成して、キャラクターや世界観を設定し、魅力的な台本を生成しましょう。",
   createFirstProject: "最初のプロジェクトを作成",
   projectRequiredForScript: "プロジェクトは台本生成に必要です",
+  // 台本設定関連
+  scriptSettings: "台本設定",
+  totalDuration: "全体の長さ",
+  sceneCount: "シーン数",
+  averageSceneDuration: "1シーンの平均時間",
+  minutes: "分",
+  scenes: "シーン",
+  // 台本コンテンツ操作
+  addScene: "シーンを追加",
+  addDialogue: "セリフを追加",
+  addLine: "ラインを追加",
+  addHere: "ここに追加",
 };

@@ -147,4 +147,16 @@ export default {
     "Create a project to set up characters and world settings, then generate compelling scripts.",
   createFirstProject: "Create Your First Project",
   projectRequiredForScript: "A project is required for script generation",
+  // Script Settings
+  scriptSettings: "Script Settings",
+  totalDuration: "Total Duration",
+  sceneCount: "Scene Count",
+  averageSceneDuration: "Average Scene Duration",
+  minutes: "minutes",
+  scenes: "scenes",
+  // Script Content Operations
+  addScene: "Add Scene",
+  addDialogue: "Add Dialogue",
+  addLine: "Add Line",
+  addHere: "Add Here",
 };

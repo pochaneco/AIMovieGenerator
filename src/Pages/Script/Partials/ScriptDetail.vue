@@ -44,37 +44,76 @@
         </template>
 
         <!-- メインコンテンツ -->
-        <ContentDisplay
-          :title="$t('scriptContent')"
-          :status="script.status"
-          :content="script.content"
-          :loading-message="$t('generatingScript')"
-          :error-message="$t('scriptGenerationFailed')"
-          :empty-message="$t('noScriptContent')"
-          empty-icon="document"
-        >
-          <template #empty-actions>
-            <CoolButton
-              @click="$emit('generate')"
-              variant="primary"
-              :disabled="generating"
-            >
-              {{ $t("generateScript") }}
-            </CoolButton>
-            <CoolButton
-              @click="$emit('edit')"
-              variant="secondary"
-              :disabled="generating"
-            >
-              {{ $t("editBasicInfo") }}
-            </CoolButton>
-          </template>
-        </ContentDisplay>
+        <div class="mb-6">
+          <!-- 構造化コンテンツがある場合 -->
+          <ScriptContentDisplay
+            v-if="
+              script.structuredContent && script.structuredContent.length > 0
+            "
+            :script-content="script.structuredContent"
+            :read-only="true"
+          />
+
+          <!-- 古い形式のコンテンツがある場合 -->
+          <ContentDisplay
+            v-else-if="script.content"
+            :title="$t('scriptContent')"
+            :status="script.status"
+            :content="script.content"
+            :loading-message="$t('generatingScript')"
+            :error-message="$t('scriptGenerationFailed')"
+            :empty-message="$t('noScriptContent')"
+            empty-icon="document"
+          >
+            <template #empty-actions>
+              <CoolButton
+                @click="$emit('generate')"
+                variant="primary"
+                :disabled="generating"
+              >
+                {{ $t("generateScript") }}
+              </CoolButton>
+              <CoolButton
+                @click="$emit('edit')"
+                variant="secondary"
+                :disabled="generating"
+              >
+                {{ $t("editBasicInfo") }}
+              </CoolButton>
+            </template>
+          </ContentDisplay>
+
+          <!-- コンテンツが全くない場合 -->
+          <div v-else class="text-center py-12 text-gray-500">
+            <Icon
+              name="document"
+              size="2xl"
+              class="mx-auto text-gray-400 mb-4"
+            />
+            <p class="mb-4">{{ $t("noScriptContent") }}</p>
+            <div class="flex gap-4 justify-center">
+              <CoolButton
+                @click="$emit('generate')"
+                variant="primary"
+                :disabled="generating"
+              >
+                {{ $t("generateScript") }}
+              </CoolButton>
+              <CoolButton
+                @click="$emit('edit')"
+                variant="secondary"
+                :disabled="generating"
+              >
+                {{ $t("editBasicInfo") }}
+              </CoolButton>
+            </div>
+          </div>
+        </div>
 
         <!-- アクションボタン -->
         <template #actions>
           <CoolButton
-            v-if="!script.content || script.status === 'draft'"
+            v-if="!hasScriptContent || script.status === 'draft'"
             @click="$emit('generate')"
             variant="primary"
             :disabled="generating"
@@ -83,7 +122,7 @@
           </CoolButton>
 
           <CoolButton
-            v-if="script.content && script.status === 'completed'"
+            v-if="hasScriptContent && script.status === 'completed'"
             @click="$emit('regenerate')"
             variant="success"
             :disabled="generating"
@@ -97,7 +136,7 @@
             variant="secondary"
             :disabled="generating"
           >
-            {{ script.content ? $t("edit") : $t("editBasicInfo") }}
+            {{ hasScriptContent ? $t("edit") : $t("editBasicInfo") }}
           </CoolButton>
         </template>
       </EntityHeader>
@@ -116,6 +155,7 @@ import StatusBadge from "@/components/StatusBadge.vue";
 import ContentDisplay from "@/components/ContentDisplay.vue";
 import EntityHeader from "@/components/EntityHeader.vue";
 import DateFormat from "@/components/DateFormat.vue";
+import ScriptContentDisplay from "./ScriptContentDisplay.vue";
 
 const { t } = useI18n();
 
@@ -132,6 +172,15 @@ const emit = defineEmits([
   "regenerate",
   "edit",
 ]);
+
+// 台本コンテンツがあるかどうかを判定
+const hasScriptContent = computed(() => {
+  return (
+    (props.script.structuredContent &&
+      props.script.structuredContent.length > 0) ||
+    props.script.content
+  );
+});
 
 // パンくずナビゲーションのアイテム
 const breadcrumbItems = computed(() => [
