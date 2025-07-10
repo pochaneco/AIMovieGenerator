@@ -30,20 +30,29 @@
       >
         <template #submit-button>
           <div class="flex gap-4 justify-end mt-6">
-            <button
-              type="button"
+            <CoolButton
+              @click="duplicateScript"
+              variant="warning"
+              class="flex items-center gap-2 px-6 py-2"
+            >
+              <Icon name="copy" size="sm" />
+              {{ $t("duplicate") }}
+            </CoolButton>
+            <CoolButton
               @click="closeEditModal"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+              variant="secondary"
+              class="px-4 py-2"
             >
               {{ $t("cancel") }}
-            </button>
-            <button
+            </CoolButton>
+            <CoolButton
               type="submit"
               :disabled="!editForm.title || !editForm.description"
-              class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              variant="primary"
+              class="px-4 py-2"
             >
               {{ $t("save") }}
-            </button>
+            </CoolButton>
           </div>
         </template>
       </ScriptGenerateForm>
@@ -58,6 +67,7 @@ import BaseLayout from "@/Layouts/BaseLayout.vue";
 import ScriptDetail from "./Partials/ScriptDetail.vue";
 import ScriptGenerateForm from "./Partials/ScriptGenerateForm.vue";
 import Modal from "@/components/Modal.vue";
+import CoolButton from "@/components/CoolButton.vue";
 import {
   generateAIScript,
   handleGenerationError,
@@ -67,7 +77,10 @@ import {
   updateScript,
   getProject,
   getProjects,
+  addScript,
+  getMaxScriptId,
 } from "@/services/dataService.js";
+import { duplicateScript as duplicateScriptUtil } from "@/utils/scriptGenerator.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -226,6 +239,22 @@ async function updateScriptData() {
     await updateScript(scriptIndex, script.value);
   } catch (error) {
     console.error("台本の更新に失敗しました:", error);
+  }
+}
+
+// Add the function to duplicate the script
+async function duplicateScript() {
+  try {
+    const newScript = await duplicateScriptUtil(
+      script.value,
+      getMaxScriptId,
+      addScript
+    );
+    alert("台本が複製されました");
+    router.push(`/script/${newScript.id}`);
+  } catch (error) {
+    console.error("台本の複製に失敗しました:", error);
+    alert("台本の複製に失敗しました");
   }
 }
 </script>

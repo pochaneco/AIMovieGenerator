@@ -51,7 +51,7 @@ export const PROVIDER_INFO = {
   [LLM_PROVIDERS.ANTHROPIC]: {
     name: "Anthropic",
     models: [
-      "claude-opus-4-20250514",
+      "claude-opus-4-20250514 (expensive)",
       "claude-sonnet-4-20250514",
       "claude-3-7-sonnet-20250219",
       "claude-3-5-haiku-20241022",
@@ -187,13 +187,13 @@ export async function generateText(prompt, options = {}) {
 /**
  * シーン作成関数 - LLMツールとして使用
  */
-function createScene(title, description, duration = "2分") {
+function createScene(title, description, duration = 2) {
   return {
     id: Date.now() + Math.random(),
     type: "scene",
     title,
     content: description,
-    duration,
+    duration, // 数値型に変更
     lines: [],
   };
 }
@@ -225,15 +225,114 @@ function addLineToScene(
 
 /**
  * 台本生成用の専用関数（設定IDとモデルを指定可能）
+ * Agentを使用して台本を生成するための関数
  */
+export async function generateScriptWithAgent(
+  projectData,
+  scriptData,
+  options = {}
+) {
+  const { configId = null, modelName = null, scriptSettings = {} } = options;
+
+  // 台本設定のデフォルト値
+  const settings = {
+    totalDuration: scriptSettings.totalDuration || 10, // 数値型に変更
+    sceneCount: scriptSettings.sceneCount || 3,
+    averageSceneDuration: scriptSettings.averageSceneDuration || 3, // 数値型に変更
+    ...scriptSettings,
+  };
+
+  const characters = projectData?.characters || [];
+  const charactersInfo =
+    characters.length > 0
+      ? `登場キャラクター: ${characters
+          .map((c) => `${c.name}(${c.role || c.description || ""})`)
+          .join(", ")}`
+      : "";
+
+  // Function Calling用の関数定義
+  const sceneFunctionDefinition = {
+    name: "generate_scenes",
+    description: "動画のシーン一覧を生成する",
+    parameters: {
+      type: "object",
+      properties: {
+        scenes: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string", description: "シーンのタイトル" },
+              description: { type: "string", description: "シーンの説明" },
+              duration: { type: "string", description: "シーンの時間" },
+            },
+            required: ["title", "description", "duration"],
+          },
+        },
+      },
+      required: ["scenes"],
+    },
+  };
+
+  // シーン生成プロンプト
+  const scenePrompt = `
+以下の情報をもとに、動画のシーン一覧を作成してください：
+
+プロジェクト名: ${projectData?.name || "未設定"}
+プロジェクト説明: ${projectData?.description || ""}
+台本タイトル: ${scriptData?.title || "未設定"}
+台本説明: ${scriptData?.description || ""}
+${charactersInfo}
+
+台本設定:
+- 全体の長さ: ${settings.totalDuration}
+- シーン数: ${settings.sceneCount}個
+- 1シーンあたりの平均時間: ${settings.averageSceneDuration}
+
+要求:
+1. 各シーンには明確なタイトルと時間を設定
+2. シーンの説明は簡潔に記述
+3. シーン数は設定に従う
+`;
+
+  try {
+    console.log("Function Callingを使用してシーン生成を開始します");
+
+    // LLMインスタンスを作成
+    const llm = await createLLMInstance(configId, modelName);
+
+    // Function Callingを使用してプロンプトを送信
+    const response = await llm.invoke({
+      messages: [{ role: "user", content: scenePrompt }],
+      functions: [sceneFunctionDefinition],
+      function_call: { name: "generate_scenes" },
+    });
+
+    // Function Callingの結果を取得
+    const result = JSON.parse(response.function_call.arguments);
+
+    if (!result.scenes || !Array.isArray(result.scenes)) {
+      throw new Error(
+        "シーン生成に失敗しました。応答が正しい形式ではありません。"
+      );
+    }
+
+    console.log("生成されたシーン一覧:", result.scenes);
+    return result.scenes;
+  } catch (error) {
+    console.error("Function Callingによるシーン生成エラー:", error);
+    throw new Error(`シーン生成に失敗しました: ${error.message}`);
+  }
+}
+
 export async function generateScript(projectData, scriptData, options = {}) {
   const { configId = null, modelName = null, scriptSettings = {} } = options;
 
   // 台本設定のデフォルト値
   const settings = {
-    totalDuration: scriptSettings.totalDuration || "10分",
+    totalDuration: scriptSettings.totalDuration || 10,
     sceneCount: scriptSettings.sceneCount || 3,
-    averageSceneDuration: scriptSettings.averageSceneDuration || "3分",
+    averageSceneDuration: scriptSettings.averageSceneDuration || 3,
     ...scriptSettings,
   };
 
@@ -247,7 +346,7 @@ export async function generateScript(projectData, scriptData, options = {}) {
 
   // 構造化された出力プロンプト
   const prompt = `
-以下の情報をもとに、映画の台本を作成してください：
+以下の情報をもとに、動画の台本を作成してください：
 
 プロジェクト名: ${projectData?.name || "未設定"}
 プロジェクト説明: ${projectData?.description || ""}
@@ -256,9 +355,9 @@ export async function generateScript(projectData, scriptData, options = {}) {
 ${charactersInfo}
 
 台本設定:
-- 全体の長さ: ${settings.totalDuration}
-- シーン数: ${settings.sceneCount}個
-- 1シーンあたりの平均時間: ${settings.averageSceneDuration}
+- 全体の長さ: ${settings.totalDuration} 分
+- シーン数: ${settings.sceneCount} 個
+- 1シーンあたりの平均時間: ${settings.averageSceneDuration} 分
 
 以下のマークダウン形式で台本を出力してください：
 

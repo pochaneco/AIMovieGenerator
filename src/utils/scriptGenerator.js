@@ -478,3 +478,27 @@ export function handleGenerationError(error) {
     timestamp: new Date().toISOString(),
   };
 }
+
+/**
+ * 台本の複製
+ * @param {Object} script - 複製元の台本データ
+ * @param {Function} getMaxScriptId - 新しいID取得関数
+ * @param {Function} addScript - 台本追加関数
+ * @returns {Promise<Object>} 複製された台本データ
+ */
+export async function duplicateScript(script, getMaxScriptId, addScript) {
+  try {
+    const maxId = await getMaxScriptId();
+    const duplicatedScript = JSON.parse(JSON.stringify(script));
+    duplicatedScript.id = maxId + 1;
+    duplicatedScript.title += " (複製)";
+    duplicatedScript.createdAt = new Date().toISOString();
+    duplicatedScript.updatedAt = new Date().toISOString();
+
+    const newScript = await addScript(duplicatedScript);
+    return newScript;
+  } catch (error) {
+    console.error("台本の複製に失敗しました:", error);
+    throw new Error("台本の複製に失敗しました");
+  }
+}

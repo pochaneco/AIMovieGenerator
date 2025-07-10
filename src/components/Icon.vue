@@ -34,6 +34,8 @@ import {
   mdiDownload,
   mdiDelete,
   mdiSend,
+  mdiRobot,
+  mdiContentCopy,
 } from "@mdi/js";
 
 const props = defineProps({
@@ -72,6 +74,8 @@ const iconMap = {
   download: mdiDownload,
   delete: mdiDelete,
   send: mdiSend,
+  robot: mdiRobot,
+  copy: mdiContentCopy,
 };
 
 const iconPath = computed(() => {

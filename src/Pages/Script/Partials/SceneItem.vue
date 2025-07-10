@@ -29,8 +29,9 @@
               @keyup.enter="saveEdit"
               @keyup.escape="cancelEdit"
               class="w-32 text-sm text-gray-600 bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500"
-              placeholder="時間"
+              placeholder="時間 (分)"
             />
+
             <div class="flex gap-2 mt-2">
               <button
                 @click="saveEdit"
@@ -49,17 +50,17 @@
           <!-- シーン表示モード -->
           <div
             v-else
-            @dblclick="startEdit"
+            @click="startEdit"
             :class="{ 'cursor-pointer hover:bg-blue-100': !readOnly }"
             class="rounded p-1"
-            :title="readOnly ? '' : 'ダブルクリックで編集'"
+            :title="readOnly ? '' : 'クリックで編集'"
           >
             <h3 class="font-bold text-lg text-blue-800 mb-2">
               {{ scene.title }}
             </h3>
             <p class="text-gray-700">{{ scene.content }}</p>
             <p v-if="scene.duration" class="text-sm text-gray-500 mt-1">
-              時間: {{ scene.duration }}
+              時間: {{ scene.duration }} 分
             </p>
           </div>
         </div>

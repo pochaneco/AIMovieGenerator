@@ -157,4 +157,6 @@ export default {
   addDialogue: "セリフを追加",
   addLine: "ラインを追加",
   addHere: "ここに追加",
+  generateScriptWithAgent: "エージェントで台本を生成",
+  duplicate: "複製",
 };

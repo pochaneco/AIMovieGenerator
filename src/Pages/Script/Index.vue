@@ -41,6 +41,7 @@
               @preview="previewScript"
               @detail="goToDetail"
               @createNew="switchToCreateTab"
+              @duplicate="duplicateScript"
             />
           </div>
         </template>
@@ -64,7 +65,10 @@ import {
   createScript,
   getProjects,
   deleteScript,
+  getMaxScriptId,
+  addScript,
 } from "@/services/dataService.js";
+import { duplicateScript as duplicateScriptUtil } from "@/utils/scriptGenerator.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -199,5 +203,21 @@ function goToDetail(index) {
 
 function goToProjectCreate() {
   router.push("/project");
+}
+
+async function duplicateScript(index) {
+  try {
+    const scriptToDuplicate = generatedScripts.value[index];
+    const newScript = await duplicateScriptUtil(
+      scriptToDuplicate,
+      getMaxScriptId,
+      addScript
+    );
+    alert("台本が複製されました");
+    await loadGeneratedScripts();
+  } catch (error) {
+    console.error("台本の複製に失敗しました:", error);
+    alert("台本の複製に失敗しました");
+  }
 }
 </script>

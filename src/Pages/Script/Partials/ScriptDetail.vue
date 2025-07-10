@@ -2,15 +2,22 @@
   <div>
     <div class="mb-6">
       <!-- パンくずナビゲーション -->
-      <Breadcrumb :items="breadcrumbItems" @navigate="handleNavigation" />
+      <BreadcrumbSystem :items="breadcrumbItems" @navigate="handleNavigation" />
 
-      <button
-        @click="$emit('back')"
-        class="flex items-center text-blue-500 hover:text-blue-600 mb-4"
-      >
-        <Icon name="back" class="mr-2" />
-        {{ $t("back") }}
-      </button>
+      <div class="flex justify-between">
+        <button
+          @click="$emit('back')"
+          class="flex items-center text-blue-500 hover:text-blue-600 mb-4"
+        >
+          <Icon name="back" class="mr-2" />
+          {{ $t("back") }}
+        </button>
+
+        <CoolButton @click="$emit('edit')" variant="primary" class="mb-4">
+          <Icon name="edit" class="mr-2" />
+          {{ $t("edit") }}
+        </CoolButton>
+      </div>
 
       <EntityHeader :title="script.title" default-title="台本タイトル">
         <!-- メタ情報 -->
@@ -122,21 +129,12 @@
           </CoolButton>
 
           <CoolButton
-            v-if="hasScriptContent && script.status === 'completed'"
-            @click="$emit('regenerate')"
-            variant="success"
+            v-if="!hasScriptContent || script.status === 'draft'"
+            @click="$emit('generateWithAgent')"
+            variant="info"
             :disabled="generating"
           >
-            {{ generating ? $t("generating") : $t("regenerateScript") }}
-          </CoolButton>
-
-          <!-- 編集ボタン（常に表示、未生成でも基本情報を編集可能） -->
-          <CoolButton
-            @click="$emit('edit')"
-            variant="secondary"
-            :disabled="generating"
-          >
-            {{ hasScriptContent ? $t("edit") : $t("editBasicInfo") }}
+            {{ generating ? $t("generating") : $t("generateScriptWithAgent") }}
           </CoolButton>
         </template>
       </EntityHeader>
@@ -151,6 +149,7 @@ import CoolButton from "@/components/CoolButton.vue";
 import ProjectDetails from "@/components/ProjectDetails.vue";
 import Icon from "@/components/Icon.vue";
 import Breadcrumb from "@/components/Breadcrumb.vue";
+import BreadcrumbSystem from "@/components/BreadcrumbSystem.vue";
 import StatusBadge from "@/components/StatusBadge.vue";
 import ContentDisplay from "@/components/ContentDisplay.vue";
 import EntityHeader from "@/components/EntityHeader.vue";
@@ -169,6 +168,7 @@ const emit = defineEmits([
   "back",
   "backToList",
   "generate",
+  "generateWithAgent",
   "regenerate",
   "edit",
 ]);

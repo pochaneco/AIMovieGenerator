@@ -159,4 +159,6 @@ export default {
   addDialogue: "Add Dialogue",
   addLine: "Add Line",
   addHere: "Add Here",
+  generateScriptWithAgent: "Generate Script with Agent",
+  duplicate: "Duplicate",
 };

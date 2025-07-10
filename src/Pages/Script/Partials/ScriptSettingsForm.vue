@@ -7,14 +7,16 @@
           全体の長さ
         </label>
         <select
-          v-model="modelValue.totalDuration"
+          v-model.number="modelValue.totalDuration"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
         >
-          <option value="5分">5分</option>
-          <option value="10分">10分</option>
-          <option value="15分">15分</option>
-          <option value="20分">20分</option>
-          <option value="30分">30分</option>
+          <option
+            v-for="option in totalDurationOptions"
+            :key="option"
+            :value="option"
+          >
+            {{ option }} 分
+          </option>
         </select>
       </div>
       <div>
@@ -25,11 +27,13 @@
           v-model="modelValue.sceneCount"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
         >
-          <option :value="2">2シーン</option>
-          <option :value="3">3シーン</option>
-          <option :value="4">4シーン</option>
-          <option :value="5">5シーン</option>
-          <option :value="6">6シーン</option>
+          <option
+            v-for="option in sceneCountOptions"
+            :key="option"
+            :value="option"
+          >
+            {{ option }} シーン
+          </option>
         </select>
       </div>
       <div>
@@ -37,14 +41,16 @@
           1シーンの平均時間
         </label>
         <select
-          v-model="modelValue.averageSceneDuration"
+          v-model.number="modelValue.averageSceneDuration"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
         >
-          <option value="1分">1分</option>
-          <option value="2分">2分</option>
-          <option value="3分">3分</option>
-          <option value="4分">4分</option>
-          <option value="5分">5分</option>
+          <option
+            v-for="option in averageSceneDurationOptions"
+            :key="option"
+            :value="option"
+          >
+            {{ option }} 分
+          </option>
         </select>
       </div>
     </div>
@@ -58,4 +64,9 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(["update:modelValue"]);
+
+// 定数として選択肢を定義
+const totalDurationOptions = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60];
+const sceneCountOptions = [1, 2, 3, 5, 10];
+const averageSceneDurationOptions = [1, 2, 3, 4, 5];
 </script>

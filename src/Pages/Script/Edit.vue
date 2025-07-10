@@ -4,7 +4,7 @@
       <!-- ヘッダー -->
       <div class="mb-6">
         <!-- パンくずナビゲーション -->
-        <Breadcrumb :items="breadcrumbItems" />
+        <BreadcrumbSystem :items="breadcrumbItems" />
 
         <!-- タイトルと情報アイコン -->
         <div class="flex items-center gap-3 mb-4">
@@ -63,6 +63,17 @@
         </CoolButton>
 
         <CoolButton
+          v-if="!isGenerating"
+          @click="generateScriptWithAgent"
+          variant="info"
+          class="flex items-center gap-2 px-6 py-3"
+          :disabled="!selectedConfig"
+        >
+          <Icon name="robot" />
+          {{ $t("generateScriptWithAgent") }}
+        </CoolButton>
+
+        <CoolButton
           v-if="isGenerating"
           @click="stopGeneration"
           variant="danger"
@@ -92,6 +103,15 @@
           <Icon name="close" size="sm" />
           {{ $t("cancel") }}
         </CoolButton>
+
+        <CoolButton
+          @click="duplicateScript"
+          variant="warning"
+          class="flex items-center gap-2 px-6 py-2"
+        >
+          <Icon name="copy" size="sm" />
+          {{ $t("duplicate") }}
+        </CoolButton>
       </div>
     </div>
 
@@ -113,6 +133,7 @@ import BaseLayout from "@/Layouts/BaseLayout.vue";
 import CoolButton from "@/components/CoolButton.vue";
 import Icon from "@/components/Icon.vue";
 import Breadcrumb from "@/components/Breadcrumb.vue";
+import BreadcrumbSystem from "@/components/BreadcrumbSystem.vue";
 import LLMConfigSelector from "@/components/LLMConfigSelector.vue";
 import ScriptInfoModal from "@/components/ScriptInfoModal.vue";
 import ScriptContentDisplay from "./Partials/ScriptContentDisplay.vue";
@@ -120,6 +141,7 @@ import ScriptSettingsForm from "./Partials/ScriptSettingsForm.vue";
 import {
   generateAIScript,
   generateStructuredScript,
+  duplicateScript as duplicateScriptUtil,
 } from "@/utils/scriptGenerator.js";
 import {
   getScript,
@@ -183,9 +205,9 @@ const script = ref({
 
 // 台本設定
 const scriptSettings = ref({
-  totalDuration: "10分",
+  totalDuration: 10, // 数値に変更
   sceneCount: 3,
-  averageSceneDuration: "3分",
+  averageSceneDuration: 3, // 数値に変更
 });
 
 const project = ref(null);
@@ -225,7 +247,7 @@ function convertToNestedStructure(oldContent) {
           type: "scene",
           title: "シーン1",
           content: "自動生成されたシーン",
-          duration: "3分",
+          duration: 3, // 数値に変更
           lines: [item],
         };
       }
@@ -295,7 +317,7 @@ function addScene(position) {
     type: "scene",
     title: "新しいシーン",
     content: "シーンの説明を入力してください",
-    duration: "3分",
+    duration: 3, // 数値に変更
     lines: [],
   };
 
@@ -622,5 +644,40 @@ async function saveScript() {
 function cancelEdit() {
   // 編集をキャンセルして詳細画面に戻る
   router.push(`/script/${route.params.id}`);
+}
+
+// Add the new function to handle the agent-based script generation
+function generateScriptWithAgent() {
+  isGenerating.value = true;
+  generateStructuredScript(
+    scriptSettings.value,
+    selectedConfig.value,
+    selectedModel.value
+  )
+    .then((result) => {
+      scriptContent.value = result;
+    })
+    .catch((error) => {
+      console.error("Error generating script with agent:", error);
+    })
+    .finally(() => {
+      isGenerating.value = false;
+    });
+}
+
+// Add the function to duplicate the script
+async function duplicateScript() {
+  try {
+    const newScript = await duplicateScriptUtil(
+      script.value,
+      getMaxScriptId,
+      addScript
+    );
+    alert("台本が複製されました");
+    router.push(`/script/${newScript.id}`);
+  } catch (error) {
+    console.error("台本の複製に失敗しました:", error);
+    alert("台本の複製に失敗しました");
+  }
 }
 </script>

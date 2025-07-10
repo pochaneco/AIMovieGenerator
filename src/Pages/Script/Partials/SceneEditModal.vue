@@ -24,9 +24,9 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">長さ</label>
         <input
-          v-model="localScene.duration"
+          v-model.number="localScene.duration"
           class="w-full px-3 py-2 border rounded"
-          placeholder="例: 3分"
+          placeholder="例: 3"
         />
       </div>
     </div>
@@ -53,7 +53,7 @@ const emit = defineEmits(["close", "save"]);
 const localScene = reactive({
   title: "",
   content: "",
-  duration: "",
+  duration: 0, // 数値型に変更
 });
 
 watch(
@@ -62,11 +62,11 @@ watch(
     if (val) {
       localScene.title = val.title || "";
       localScene.content = val.content || "";
-      localScene.duration = val.duration || "";
+      localScene.duration = val.duration || 0; // 数値型に変更
     } else {
       localScene.title = "";
       localScene.content = "";
-      localScene.duration = "";
+      localScene.duration = 0; // 数値型に変更
     }
   },
   { immediate: true }

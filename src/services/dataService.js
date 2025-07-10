@@ -182,6 +182,27 @@ export async function deleteScript(index) {
 }
 
 /**
+ * 新しい台本を追加
+ * @param {Object} scriptData - 追加する台本データ
+ * @returns {Promise<Object>} 追加された台本データ
+ */
+export async function addScript(scriptData) {
+  await ensureInitialized();
+
+  try {
+    const id = await db.scripts.add({
+      ...scriptData,
+      createdAt: new Date(),
+    });
+    const newScript = await db.scripts.get(id);
+    return newScript;
+  } catch (error) {
+    console.error("台本データの追加に失敗しました:", error);
+    throw new Error("台本データの追加に失敗しました");
+  }
+}
+
+/**
  * プロジェクトデータの取得
  * @returns {Promise<Array>} プロジェクトデータの配列
  */
@@ -817,5 +838,25 @@ export async function healthCheck() {
       error: error.message,
       timestamp: new Date().toISOString(),
     };
+  }
+}
+
+/**
+ * 現在の最大台本IDを取得
+ * @returns {Promise<number>} 最大ID
+ */
+export async function getMaxScriptId() {
+  await ensureInitialized();
+
+  try {
+    const scripts = await db.scripts.toArray();
+    const maxId = scripts.reduce((max, script) => {
+      const id = parseInt(script.id, 10);
+      return id > max ? id : max;
+    }, 0);
+    return maxId;
+  } catch (error) {
+    console.error("最大台本IDの取得に失敗しました:", error);
+    throw new Error("最大台本IDの取得に失敗しました");
   }
 }

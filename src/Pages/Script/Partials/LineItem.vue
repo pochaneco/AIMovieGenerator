@@ -54,10 +54,10 @@
           <!-- セリフ表示モード -->
           <div
             v-else
-            @dblclick="startEdit"
+            @click="startEdit"
             :class="{ 'cursor-pointer hover:bg-green-100': !readOnly }"
             class="flex items-start gap-3 rounded p-1"
-            :title="readOnly ? '' : 'ダブルクリックで編集'"
+            :title="readOnly ? '' : 'クリックで編集'"
           >
             <span
               class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded"
